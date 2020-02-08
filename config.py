@@ -1,4 +1,5 @@
 import redis
+import logging
 
 
 class Config(object):
@@ -6,6 +7,9 @@ class Config(object):
     SECRET_KEY = "EjpNVSNQTyGi1VvWECj9TvC/+kq3oujee2kTfQUs8yCM6xX9Yjq52v54g+HVoknA"
 
     DEBUG = True
+
+    # 默认日志等级
+    LOG_LEVEL = logging.DEBUG
 
     # 数据库的配置信息
     SQLALCHEMY_DATABASE_URI = "mysql://root:mysql@127.0.0.1:3306/flask_test"
@@ -29,7 +33,8 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """生产模式下的配置"""
-    pass
+    # 生产模式下日志等级
+    LOG_LEVEL = logging.ERROR
 
 
 # 定义配置字典
