@@ -1,5 +1,5 @@
 from flask import Flask
-from config import config
+from config import config_dict
 from flask_sqlalchemy import SQLAlchemy
 import redis
 from flask_wtf.csrf import CSRFProtect
@@ -15,7 +15,7 @@ def setup_log(config_name):
     """配置日志"""
 
     # 设置日志的记录等级
-    logging.basicConfig(level=config[config_name].LOG_LEVEL)  # 调试DEBUG级
+    logging.basicConfig(level=config_dict[config_name].LOG_LEVEL)  # 调试DEBUG级
     # 设置日志记录器，指明日志保存的路径、每个日志文件的最大大小、保存日志文件个数的上限
     file_log_handler = RotatingFileHandler(filename='logs/log', maxBytes=1024*1024*100, backupCount=10)
     # 创建日志记录的格式，日志等级、输入日志信息的文件名、行数、日志信息
@@ -34,11 +34,12 @@ def create_app(config_name):
     app = Flask(__name__)
 
     # 加载配置
-    app.config.from_object(config[config_name])
+    app.config.from_object(config_dict[config_name])
     # 配置数据库
     db.init_app(app)
     # 配置redis
-    redis_store = redis.StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
+    global redis_store
+    redis_store = redis.StrictRedis(host=config_dict[config_name].REDIS_HOST, port=config_dict[config_name].REDIS_PORT)
     # 开启CSRF保护
     CSRFProtect(app)
     # 设置session保存的位置
