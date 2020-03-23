@@ -3,12 +3,12 @@ $(function(){
 	// 打开登录框
 	$('.login_btn').click(function(){
         $('.login_form_con').show();
-	})
+	});
 	
 	// 点击关闭按钮关闭登录框或者注册框
 	$('.shutoff').click(function(){
 		$(this).closest('form').hide();
-	})
+	});
 
     // 隐藏错误
     $(".login_form #mobile").focus(function(){
@@ -35,7 +35,7 @@ $(function(){
 	// 点击输入框，提示文字上移
 	$('.form_group').on('click focusin',function(){
 		$(this).children('.input_tip').animate({'top':-5,'font-size':12},'fast').siblings('input').focus().parent().addClass('hotline');
-	})
+	});
 
 	// 输入框失去焦点，如果输入框为空，则提示文字下移
 	$('.form_group input').on('blur focusout',function(){
@@ -45,7 +45,7 @@ $(function(){
 		{
 			$(this).siblings('.input_tip').animate({'top':22,'font-size':14},'fast');
 		}
-	})
+	});
 
 
 	// 打开注册框
@@ -115,13 +115,13 @@ $(function(){
 
     // TODO 注册按钮点击
     $(".register_form_con").submit(function (e) {
-        // 阻止默认提交操作
-        e.preventDefault()
+        // 阻止默认提交操作，执行我们绑定的提交事件
+        e.preventDefault();
 
 		// 取到用户输入的内容
-        var mobile = $("#register_mobile").val()
-        var smscode = $("#smscode").val()
-        var password = $("#register_password").val()
+        var mobile = $("#register_mobile").val();
+        var smscode = $("#smscode").val();
+        var password = $("#register_password").val();
 
 		if (!mobile) {
             $("#register-mobile-err").show();
@@ -144,7 +144,28 @@ $(function(){
         }
 
         // 发起注册请求
-
+        var data = {
+		    "mobile": mobile,
+            "smscode": smscode,
+            "password": password
+        };
+        $.ajax({
+            type: 'post',
+            url: "/passport/register",
+            data: JSON.stringify(data),
+            contentType: 'application/json',  // 发送数据类型为json格式
+            dataType: "json",  // 返回数据类型json格式
+            success: function (resp) {
+                if(resp.code == 200){
+                    // 刷新当前页面
+                    location.reload();
+                }else {
+                    // 错误提示
+                    $("#register-password-err").html(resp.errmsg)
+                    $("#register-password-err").show()
+                }
+            }
+        })
     })
 })
 

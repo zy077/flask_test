@@ -1,8 +1,10 @@
 import random
 import re
 
-from flask import request, current_app, make_response, jsonify, Response
-from info import redis_store, constants
+from flask import request, current_app, make_response, jsonify, Response, session
+from flask_wtf import csrf
+
+from info import redis_store, constants, db
 from info.libs.yuntongxun.sms import CCP
 from info.models import User
 from info.utils.captcha.captcha import captcha
@@ -102,3 +104,58 @@ def send_sms():
 
     # 4、返回响应
     return jsonify(errno=RET.OK, errmsg="短信验证码发送成功")
+
+
+@passport_blu.route('/register', methods=["GET", "POST"])
+def register():
+    """
+    注册
+    :return:
+    """
+    # 1、获取参数
+    param_dict = request.json
+    mobile = param_dict.get("mobile", "")
+    smscode = param_dict.get("smscode", "")
+    password = param_dict.get("password", "")
+
+    # 2、检验
+    # 参数是否齐全
+    if not all([mobile, smscode, password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
+    # 短信验证码是否正确
+    try:
+        real_sms_code = redis_store.get("SMS_" + mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="获取本地短信验证码失败！")
+    if not real_sms_code:
+        return jsonify(errno=RET.NODATA, errmsg="短信验证码失效")
+    if smscode != real_sms_code.decode():
+        return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
+    try:
+        redis_store.delete("SMS_" + mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 3、保存数据
+    user = User()
+    user.mobile = mobile
+    user.nick_name = mobile
+    # TODO hash_password，对密码加密处理
+    hash_password = password
+    user.password_hash = hash_password
+    db.session.add(user)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()  # 回滚
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DATAERR, errmsg="保存数据失败")
+
+    # 保持用户登录状态
+    session["user_id"] = user.id
+    session["nick_name"] = user.nick_name
+    session["mobile"] = user.mobile
+
+    # 4、返回响应
+    return jsonify(errno=RET.OK, errmsg="OK")
