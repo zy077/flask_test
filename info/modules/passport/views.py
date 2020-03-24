@@ -3,6 +3,8 @@ import re
 
 from flask import request, current_app, make_response, jsonify, Response, session
 from flask_wtf import csrf
+from flask_wtf.csrf import generate_csrf
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from info import redis_store, constants, db
 from info.libs.yuntongxun.sms import CCP
@@ -38,7 +40,11 @@ def get_image_code():
     # resp.headers["Content-Type"] = "image/jpg"
     # return resp
     print("图片验证码：%s" % text)
-    return Response(image, content_type="image/jpg")
+    resp = Response(image, content_type="image/jpg")
+    # 在cookie中设置csrf_token
+    csrf_token = generate_csrf()
+    resp.set_cookie("csrf_token", csrf_token)
+    return resp
 
 
 @passport_blu.route("/sms_code", methods=["GET", "POST"])
@@ -97,7 +103,7 @@ def send_sms():
 
     # （3）用redis保存短信验证码的内容
     try:
-        redis_store.setex("SMS_" + mobile, sms_code, constants.SMS_CODE_REDIS_EXPIRES)
+        redis_store.setex("SMS_" + mobile, constants.SMS_CODE_REDIS_EXPIRES, sms_code)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="保存短信验证码失败")
@@ -130,7 +136,8 @@ def register():
         return jsonify(errno=RET.DBERR, errmsg="获取本地短信验证码失败！")
     if not real_sms_code:
         return jsonify(errno=RET.NODATA, errmsg="短信验证码失效")
-    if smscode != real_sms_code.decode():
+    real_sms_code = real_sms_code.decode()
+    if smscode != real_sms_code:
         return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
     try:
         redis_store.delete("SMS_" + mobile)
@@ -142,7 +149,7 @@ def register():
     user.mobile = mobile
     user.nick_name = mobile
     # TODO hash_password，对密码加密处理
-    hash_password = password
+    hash_password = generate_password_hash(password)
     user.password_hash = hash_password
     db.session.add(user)
     try:

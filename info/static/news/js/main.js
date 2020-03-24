@@ -1,5 +1,10 @@
 $(function(){
 
+    function getCookie(name) {
+        var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    }
+
 	// 打开登录框
 	$('.login_btn').click(function(){
         $('.login_form_con').show();
@@ -112,7 +117,6 @@ $(function(){
         // 发起登录请求
     })
 
-
     // TODO 注册按钮点击
     $(".register_form_con").submit(function (e) {
         // 阻止默认提交操作，执行我们绑定的提交事件
@@ -153,11 +157,15 @@ $(function(){
             type: 'post',
             url: "/passport/register",
             data: JSON.stringify(data),
-            contentType: 'application/json',  // 发送数据类型为json格式
-            dataType: "json",  // 返回数据类型json格式
+            contentType: 'application/json',  // 指明向后端发送的是json格式数据
+            dataType: "json",  // 指明从后端收到的数据是json格式的
+            headers : {
+                "X-CSRFToken": getCookie('csrf_token')
+            },
             success: function (resp) {
-                if(resp.code == 200){
+                if(resp.errno == '0'){
                     // 刷新当前页面
+                    // alert("刷新页面！");
                     location.reload();
                 }else {
                     // 错误提示
