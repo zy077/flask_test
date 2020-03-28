@@ -6,6 +6,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 import logging
 from logging.handlers import RotatingFileHandler
+from flask_wtf.csrf import generate_csrf
 
 # 数据库
 db = SQLAlchemy()
@@ -44,6 +45,15 @@ def create_app(config_name):
     CSRFProtect(app)
     # 设置session保存的位置
     Session(app)
+
+    # 在执行完视图函数之后会调用，并且会把视图函数所生成的响应传入,可以在此方法中对响应做最后一步统一的处理
+    @app.after_request
+    def after_request(response):
+        # 1、生成csrf_token的值
+        csrf_token = generate_csrf()
+        # 2、通过 cookie 将csrf_token的值传给前端
+        response.set_cookie("csrf_token", csrf_token)
+        return response
 
     # 把蓝图注册到app上
     from info.modules.index import index_blu
