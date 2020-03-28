@@ -148,9 +148,9 @@ def register():
     user = User()
     user.mobile = mobile
     user.nick_name = mobile
-    # TODO hash_password，对密码加密处理
-    hash_password = generate_password_hash(password)
-    user.password_hash = hash_password
+    # 在User模型中对密码加密处理
+    # hash_password = generate_password_hash(password)
+    user.password = password
     db.session.add(user)
     try:
         db.session.commit()

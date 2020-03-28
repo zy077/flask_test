@@ -58,6 +58,15 @@ class User(BaseModel, db.Model):
     # 当前用户所发布的新闻
     news_list = db.relationship('News', backref='user', lazy='dynamic')
 
+    @property
+    def password(self):
+        # return AttributeError("Password can`t be read!")
+        return AttributeError("密码不可读！")
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
     def to_dict(self):
         resp_dict = {
             "id": self.id,
