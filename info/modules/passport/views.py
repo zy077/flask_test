@@ -207,3 +207,17 @@ def login():
     # 4、返回响应
     return jsonify({"errno": RET.OK, "errmsg": "success"})
 
+
+@passport_blu.route("/logout")
+def logout():
+    """
+    退出登录
+    :return:
+    """
+    # 删除session中登录用户数据
+    session.pop('user_id', None)
+    # 删除session中的所有数据
+    # session.clear()
+
+    return jsonify({"errno": RET.OK, "errmsg": "success"})
+
