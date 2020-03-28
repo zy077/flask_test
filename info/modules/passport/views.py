@@ -1,5 +1,6 @@
 import random
 import re
+from datetime import datetime
 
 from flask import request, current_app, make_response, jsonify, Response, session
 from flask_wtf import csrf
@@ -189,10 +190,20 @@ def login():
     user = User.query.filter_by(mobile=mobile).first()
     if not user:
         return jsonify({"errno": RET.USERERR, "errmsg": "该用户不存在"})
-    if user.check_password(password):
-        # 3、保持登录状态
-        session["user_id"] = user.id
-        # 4、返回响应
-        return jsonify({"errno": RET.OK, "errmsg": "success"})
-    else:
+    if not user.check_password(password):
         return jsonify({"errno": RET.PWDERR, "errmsg": "密码错误"})
+
+    # 3、保持登录状态
+    session["user_id"] = user.id
+    # 更新登录时间
+    user.last_login = datetime.now()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.roolback()
+        current_app.logger.error(e)
+        return jsonify({"errno": RET.DBERR, "errmsg": "保存数据失败"})
+
+    # 4、返回响应
+    return jsonify({"errno": RET.OK, "errmsg": "success"})
+
