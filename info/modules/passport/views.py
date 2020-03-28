@@ -130,15 +130,22 @@ def register():
         return jsonify(errno=RET.PARAMERR, errmsg="参数不全")
     # 短信验证码是否正确
     try:
+        # 获取短信验证码
         real_sms_code = redis_store.get("SMS_" + mobile)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="获取本地短信验证码失败！")
+
     if not real_sms_code:
+        # 短息验证码过期
         return jsonify(errno=RET.NODATA, errmsg="短信验证码失效")
+
+    # 校验
     real_sms_code = real_sms_code.decode()
     if smscode != real_sms_code:
         return jsonify(errno=RET.DATAERR, errmsg="短信验证码错误")
+
+    # 删除短息验证码
     try:
         redis_store.delete("SMS_" + mobile)
     except Exception as e:
