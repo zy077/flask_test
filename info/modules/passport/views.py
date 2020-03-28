@@ -3,8 +3,6 @@ import re
 
 from flask import request, current_app, make_response, jsonify, Response, session
 from flask_wtf import csrf
-from flask_wtf.csrf import generate_csrf
-from werkzeug.security import generate_password_hash, check_password_hash
 
 from info import redis_store, constants, db
 from info.libs.yuntongxun.sms import CCP
@@ -41,9 +39,6 @@ def get_image_code():
     # return resp
     print("图片验证码：%s" % text)
     resp = Response(image, content_type="image/jpg")
-    # 在cookie中设置csrf_token
-    csrf_token = generate_csrf()
-    resp.set_cookie("csrf_token", csrf_token)
     return resp
 
 
@@ -168,8 +163,36 @@ def register():
 
     # 保持用户登录状态
     session["user_id"] = user.id
-    session["nick_name"] = user.nick_name
-    session["mobile"] = user.mobile
+    # session["nick_name"] = user.nick_name
+    # session["mobile"] = user.mobile
 
     # 4、返回响应
     return jsonify(errno=RET.OK, errmsg="OK")
+
+
+@passport_blu.route("/login", methods=["POST"])
+def login():
+    """
+    登录
+    :return:
+    """
+    # 1、获取参数
+    data_json = request.json
+    mobile = data_json.get("mobile", "")
+    password = data_json.get("password", "")
+
+    # 2、校验参数
+    if not all([mobile, password]):
+        return jsonify({"errno": RET.PARAMERR, "errmsg": "参数不全"})
+
+    # 校验密码是否正确
+    user = User.query.filter_by(mobile=mobile).first()
+    if not user:
+        return jsonify({"errno": RET.USERERR, "errmsg": "该用户不存在"})
+    if user.check_password(password):
+        # 3、保持登录状态
+        session["user_id"] = user.id
+        # 4、返回响应
+        return jsonify({"errno": RET.OK, "errmsg": "success"})
+    else:
+        return jsonify({"errno": RET.PWDERR, "errmsg": "密码错误"})

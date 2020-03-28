@@ -120,6 +120,7 @@
                 <a href="javascript:;" class="shutoff"></a>
             </div>
             <div class="form_group">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <input id="mobile" type="text" name="mobile" autocomplete="off">
                 <div class="input_tip">手机号</div>
                 <div id="login-mobile-err" class="error_tip">手机号不能为空</div>
