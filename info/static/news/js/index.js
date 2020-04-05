@@ -1,7 +1,7 @@
 var currentCid = 1; // 当前分类 id
 var cur_page = 1; // 当前页
 var total_page = 1;  // 总页数
-// var data_querying = true;   // 是否正在向后台获取数据
+var data_querying = true;   // 是否正在向后台获取数据
 
 
 $(function () {
@@ -48,13 +48,15 @@ $(function () {
 
         // 可以滚动的高度小于100时，发起获取新数据的请求
         if(canscroll_height < 100){
-            // 判断当前页是否小于总页数
-            if(cur_page < total_page){
-                // 获取下一页数据
-                cur_page += 1;
-                updateNewsData();
+            if(!data_querying){
+                // 判断当前页是否小于总页数
+                if(cur_page < total_page){
+                    // 获取下一页数据
+                    cur_page += 1;
+                    data_querying = true;
+                    updateNewsData();
+                }
             }
-
         }
 
     })
@@ -71,7 +73,7 @@ function updateNewsData() {
         if(resp.errno == '0'){
             console.log(resp.data);
             // 查询数据结束，修改标记是否正在向后台获取数据的变量：data_querying
-            // data_querying = false;
+            data_querying = false;
             // 更新总页数标识
             total_page = resp.data.totalPage;
 
