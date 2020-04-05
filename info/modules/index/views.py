@@ -57,7 +57,7 @@ def favicon():
     return current_app.send_static_file('news/favicon.ico')  # send_static_file是系统访问静态文件所调用的方法
 
 
-@index_blu.route('news_list')
+@index_blu.route('/news_list')
 def get_news_list():
     """
     获取指定分类的新闻列表
@@ -65,9 +65,9 @@ def get_news_list():
     """
     # 1、获取参数
     args_dict = request.args
+    category_id = args_dict.get("cid", '1')
     page = args_dict.get("page", '1')
     per_page = args_dict.get("per_page", constants.HOME_PAGE_MAX_NEWS)  # 默认显示10条数据
-    category_id = args_dict.get("cid", '1')
 
     # 2、校验参数
     try:
@@ -87,16 +87,26 @@ def get_news_list():
     try:
         paginate = News.query.filter(*filter).order_by(News.create_time.desc()).paginate(page, per_page, False)
         # 获取当前页的新闻数据
-        news_list = paginate.items
+        items = paginate.items
         # 获取总页数
         total_page = paginate.pages
         # 获取当前页
         current_page = paginate.page
-
     except Exception as e:
         current_app.logger.error(e)
         return jsonify({"errno": RET.DBERR, "errmsg": "查询数据错误！"})
 
+    # 对查询到的数据做序列化处理
+    news_list = []
+    for new in items:
+        news_list.append(new.to_basic_dict())
+
+    data = {
+        'totalPage': total_page,
+        'current_page': current_page,
+        'news_list': news_list,
+        'cid': category_id
+    }
+
     # 4、返回响应
-    return jsonify(errno=RET.OK, errmsg="OK", totalPage=total_page, currentPage=current_page, news_list=news_list,
-                   cid=category_id)
+    return jsonify(errno=RET.OK, errmsg="OK", data=data)
