@@ -1,4 +1,4 @@
-from flask import render_template, session, current_app, jsonify, g
+from flask import render_template, session, current_app, jsonify, g, abort
 
 from info.models import User, News
 from info.utils.response_code import RET
@@ -7,9 +7,9 @@ from info.utils.common import user_login_data
 from . import news_blu
 
 
-@news_blu.route('/detail')
+@news_blu.route('/detail/<int:news_id>')
 @user_login_data
-def news_detail():
+def news_detail(news_id):
     """
     新闻详情
     :param news_id:
@@ -39,9 +39,19 @@ def news_detail():
     for news in click_news:
         click_news_list.append(news.to_dict())
 
+    # 查询news_id的新闻
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify({"errno": RET.DBERR, "errmsg": "查询数据失败！"})
+
+    if not news:
+        abort(404)
+
     data = {
         'user_info': g.user.to_dict() if g.user else None,  # 直接从g变量中获取登录用户的数据
-        "click_news_list": click_news_list
+        "click_news_list": click_news_list,
+        "news": news.to_dict()
     }
-
     return render_template('news/detail.html', data=data)
