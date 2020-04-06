@@ -1,21 +1,22 @@
 from info.models import User, News, Category
 from info.utils.response_code import RET
 from . import index_blu
-from flask import render_template, current_app, make_response, session, request, jsonify
+from flask import render_template, current_app, make_response, session, request, jsonify, g
 from info import constants
+from info.utils.common import user_login_data
 
 
 # 给蓝图注册路由
 @index_blu.route('/')
-@index_blu.route("/index")
+@user_login_data
 def index():
     # 判断用户是否登录
-    user_id = session.get("user_id")
-    try:
-        user = User.query.get(user_id)
-    except Exception as e:
-        current_app.logger.error(e)
-        user = None
+    # user_id = session.get("user_id")
+    #     # try:
+    #     #     user = User.query.get(user_id)
+    #     # except Exception as e:
+    #     #     current_app.logger.error(e)
+    #     #     user = None
 
     # # 1、生成csrf_token的值
     # csrf_token = generate_csrf()
@@ -45,7 +46,7 @@ def index():
         category_list.append(category.to_dict())
 
     data = {
-        "user_info": user.to_dict() if user else None,
+        "user_info": g.user.to_dict() if g.user else None,
         "click_news_list": click_news_list,
         "categories": category_list
     }
