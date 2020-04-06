@@ -49,9 +49,16 @@ def news_detail(news_id):
     if not news:
         abort(404)
 
+    # 添加变量is_collected，用于表示用户是否收藏了该新闻
+    is_collected = False
+    if g.user:
+        if news in g.user.collection_news:
+            is_collected = True
+
     data = {
         'user_info': g.user.to_dict() if g.user else None,  # 直接从g变量中获取登录用户的数据
         "click_news_list": click_news_list,
-        "news": news.to_dict()
+        "news": news.to_dict(),
+        "is_collected": is_collected
     }
     return render_template('news/detail.html', data=data)
