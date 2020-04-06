@@ -93,7 +93,7 @@ body{
 }
 
 .list_con{
-    width:820px;    
+    width:820px;
 }
 
 .list_con li{
@@ -186,7 +186,7 @@ body{
 .card_list_con{
     width:760px;
     overflow:hidden;
-    margin-left:10px;    
+    margin-left:10px;
 }
 
 .card_list{
@@ -205,7 +205,7 @@ body{
 .author_pic{
     float:left;
     width:60px;
-    height:60px;    
+    height:60px;
 }
 .author_pic img{
     width:60px;
@@ -239,14 +239,14 @@ body{
 .writings span,.follows span{
     display: block;
     font-size:12px;
-    color:#999;    
+    color:#999;
 }
 
 .writings b,.follows b{
     display: block;
     font-weight:normal;
     font-size:18px;
-    color:#333;    
+    color:#333;
 }
 
 .rank_title{
@@ -658,17 +658,21 @@ body{
     display:inline-block;
     width:100px;
     height:36px;
-    color:#666;
+    border:1px solid #3791ef;
+    color:#3791ef;
     border-radius:4px;
     font-size:14px;
-    margin:0px 5px;
-    background:url(../images/collect_icons.png) 15px -73px no-repeat #e6e6e6;
+    /*margin:0px 5px;*/
+    background:url(../images/collect_icons.png) 15px -33px no-repeat;
     position:relative;
     overflow:hidden;
 }
 
 .collected:hover{
-    background-position:10px -73px;
+    background:url(../images/collect_icons.png) 10px -73px no-repeat #e6e6e6;
+    color: #666;
+    border: 1px solid #e6e6e6;
+    /*background-position:10px -73px #e6e6e6;*/
 }
 
 .collected .out{
